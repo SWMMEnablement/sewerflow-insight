@@ -1,42 +1,42 @@
-import { Play, Square, Settings, Clock, Droplets } from "lucide-react";
+import { Play, Square, Settings, Clock, Droplets, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
+import { networkMetadata } from "@/data/sampleNetwork";
 
 interface SimulationPanelProps {
   isSimulating: boolean;
-  setIsSimulating: (value: boolean) => void;
+  simulationProgress: number;
+  currentTime: number;
+  duration: number;
+  setDuration: (value: number) => void;
+  stormMultiplier: number;
+  setStormMultiplier: (value: number) => void;
+  onRunSimulation: () => void;
+  onStopSimulation: () => void;
 }
 
-const SimulationPanel = ({ isSimulating, setIsSimulating }: SimulationPanelProps) => {
-  const { toast } = useToast();
+const SimulationPanel = ({ 
+  isSimulating, 
+  simulationProgress,
+  currentTime,
+  duration,
+  setDuration,
+  stormMultiplier,
+  setStormMultiplier,
+  onRunSimulation,
+  onStopSimulation
+}: SimulationPanelProps) => {
 
   const handleSimulation = () => {
-    if (!isSimulating) {
-      setIsSimulating(true);
-      toast({
-        title: "Simulation Started",
-        description: "EPS analysis is now running...",
-      });
-      // Simulate completion after 5 seconds
-      setTimeout(() => {
-        setIsSimulating(false);
-        toast({
-          title: "Simulation Complete",
-          description: "Analysis finished successfully.",
-        });
-      }, 5000);
+    if (isSimulating) {
+      onStopSimulation();
     } else {
-      setIsSimulating(false);
-      toast({
-        title: "Simulation Stopped",
-        description: "Analysis has been terminated.",
-        variant: "destructive",
-      });
+      onRunSimulation();
     }
   };
 
@@ -62,23 +62,51 @@ const SimulationPanel = ({ isSimulating, setIsSimulating }: SimulationPanelProps
                 <SelectItem value="dynamic">Dynamic EPS</SelectItem>
                 <SelectItem value="static">Static Analysis</SelectItem>
                 <SelectItem value="design">Design Run</SelectItem>
-                <SelectItem value="quality">Water Quality</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>Duration (hours)</Label>
-            <Slider defaultValue={[24]} max={168} step={1} />
+            <div className="flex justify-between">
+              <Label>Duration</Label>
+              <span className="text-sm text-muted-foreground">{duration} hours</span>
+            </div>
+            <Slider 
+              value={[duration]} 
+              onValueChange={(v) => setDuration(v[0])}
+              max={6} 
+              min={1}
+              step={1} 
+              disabled={isSimulating}
+            />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>1h</span>
-              <span>168h</span>
+              <span>6h</span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Time Step (minutes)</Label>
-            <Select defaultValue="5">
+            <div className="flex justify-between">
+              <Label>Storm Intensity</Label>
+              <span className="text-sm text-muted-foreground">{stormMultiplier.toFixed(1)}x</span>
+            </div>
+            <Slider 
+              value={[stormMultiplier]} 
+              onValueChange={(v) => setStormMultiplier(v[0])}
+              max={3} 
+              min={0.5}
+              step={0.1} 
+              disabled={isSimulating}
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Low (0.5x)</span>
+              <span>Extreme (3x)</span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Time Step</Label>
+            <Select defaultValue="5" disabled={isSimulating}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -86,11 +114,23 @@ const SimulationPanel = ({ isSimulating, setIsSimulating }: SimulationPanelProps
                 <SelectItem value="1">1 min</SelectItem>
                 <SelectItem value="5">5 min</SelectItem>
                 <SelectItem value="15">15 min</SelectItem>
-                <SelectItem value="30">30 min</SelectItem>
-                <SelectItem value="60">60 min</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {/* Progress during simulation */}
+          {isSimulating && (
+            <div className="space-y-2 p-3 bg-primary/5 rounded-lg">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">Running...</span>
+                <span>{Math.round(simulationProgress)}%</span>
+              </div>
+              <Progress value={simulationProgress} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                Time: {currentTime} min
+              </p>
+            </div>
+          )}
 
           <Button 
             className="w-full" 
@@ -115,24 +155,28 @@ const SimulationPanel = ({ isSimulating, setIsSimulating }: SimulationPanelProps
       {/* Network Statistics */}
       <Card className="shadow-soft">
         <CardHeader>
-          <CardTitle className="text-lg">Network Overview</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Zap className="h-5 w-5 text-accent" />
+            Network Overview
+          </CardTitle>
+          <CardDescription>{networkMetadata.name}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Manholes</span>
-            <Badge variant="secondary">142</Badge>
+            <Badge variant="secondary">{networkMetadata.nodeCount}</Badge>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Pipes</span>
-            <Badge variant="secondary">189</Badge>
+            <Badge variant="secondary">{networkMetadata.pipeCount}</Badge>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Pumps</span>
-            <Badge variant="secondary">8</Badge>
+            <Badge variant="secondary">{networkMetadata.pumpCount}</Badge>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Wet Wells</span>
-            <Badge variant="secondary">4</Badge>
+            <span className="text-sm text-muted-foreground">Total Length</span>
+            <Badge variant="secondary">{networkMetadata.totalLength.toLocaleString()} ft</Badge>
           </div>
         </CardContent>
       </Card>
@@ -151,14 +195,14 @@ const SimulationPanel = ({ isSimulating, setIsSimulating }: SimulationPanelProps
               <Clock className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">Report Time Step</span>
             </div>
-            <span className="text-sm font-medium">15 min</span>
+            <span className="text-sm font-medium">5 min</span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Droplets className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">Flow Units</span>
             </div>
-            <span className="text-sm font-medium">MGD</span>
+            <span className="text-sm font-medium">{networkMetadata.flowUnits}</span>
           </div>
         </CardContent>
       </Card>
