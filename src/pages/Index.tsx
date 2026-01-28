@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { Activity, BarChart3, Network, Settings2, FileText } from "lucide-react";
+import { Activity, BarChart3, Network, Settings2, FileText, ArrowLeftRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +12,8 @@ import PropertyInspector from "@/components/PropertyInspector";
 import GuidedWorkflow from "@/components/GuidedWorkflow";
 import TechDetailsModal from "@/components/TechDetailsModal";
 import TimeSlider from "@/components/TimeSlider";
+import ComparisonMode from "@/components/ComparisonMode";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { NetworkNode, NetworkPipe, networkMetadata } from "@/data/sampleNetwork";
 import { runSimulation, TimeStepResult } from "@/lib/simulationEngine";
 
@@ -27,6 +29,7 @@ const Index = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedNode, setSelectedNode] = useState<NetworkNode | null>(null);
   const [selectedPipe, setSelectedPipe] = useState<NetworkPipe | null>(null);
+  const [showComparison, setShowComparison] = useState(false);
 
   const simulationRef = useRef<boolean>(false);
   const animationRef = useRef<number | null>(null);
@@ -145,12 +148,22 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground">Hydraulic Analysis & Simulation Platform</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowComparison(true)}
+                className="gap-2"
+              >
+                <ArrowLeftRight className="h-4 w-4" />
+                Compare
+              </Button>
               <TechDetailsModal />
               <Button variant="outline" size="sm">
                 <FileText className="h-4 w-4 mr-2" />
                 Documentation
               </Button>
+              <ThemeToggle />
               <Button variant="outline" size="sm">
                 <Settings2 className="h-4 w-4" />
               </Button>
@@ -281,6 +294,11 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Comparison Mode Modal */}
+      {showComparison && (
+        <ComparisonMode onClose={() => setShowComparison(false)} />
+      )}
     </div>
   );
 };
