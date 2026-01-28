@@ -26,6 +26,11 @@ export interface SimulationConfig {
   stormMultiplier: number; // intensity multiplier
 }
 
+export interface NetworkData {
+  nodes: NetworkNode[];
+  pipes: NetworkPipe[];
+}
+
 // Manning's equation for flow capacity
 const manningFlow = (diameter: number, slope: number, n: number): number => {
   const r = (diameter / 12) / 4; // hydraulic radius for full pipe (ft)
@@ -37,20 +42,25 @@ const manningFlow = (diameter: number, slope: number, n: number): number => {
 // Generate time series results
 export const runSimulation = (
   config: SimulationConfig,
-  onProgress?: (progress: number, time: number) => void
+  onProgress?: (progress: number, time: number) => void,
+  networkData?: NetworkData
 ): TimeStepResult[] => {
   const results: TimeStepResult[] = [];
   const totalSteps = Math.ceil((config.duration * 60) / config.timeStep);
   
+  // Use provided network data or fall back to sample data
+  const nodes = networkData?.nodes || sampleNodes;
+  const pipes = networkData?.pipes || samplePipes;
+  
   // Pre-calculate pipe capacities
   const pipeCapacities: Record<string, number> = {};
-  samplePipes.forEach(pipe => {
+  pipes.forEach(pipe => {
     pipeCapacities[pipe.id] = manningFlow(pipe.diameter, pipe.slope, pipe.roughness);
   });
 
   // Track cumulative state
   let cumulativeDepths: Record<string, number> = {};
-  sampleNodes.forEach(node => {
+  nodes.forEach(node => {
     cumulativeDepths[node.id] = 0.5; // Base depth
   });
 
@@ -70,11 +80,11 @@ export const runSimulation = (
       : 0.05;
 
     // Calculate node results
-    const nodes: Record<string, NodeResult> = {};
+    const nodeResults: Record<string, NodeResult> = {};
     let peakNodeId = '';
     let peakNodeDepth = 0;
 
-    sampleNodes.forEach((node, index) => {
+    nodes.forEach((node, index) => {
       // Inflow based on position in network and storm intensity
       const baseInflow = (0.1 + (index * 0.05)) * intensity;
       
@@ -96,7 +106,7 @@ export const runSimulation = (
         ? (hgl - node.rimElevation) * 0.5 
         : 0;
 
-      nodes[node.id] = {
+      nodeResults[node.id] = {
         depth: Math.round(depthResponse * 100) / 100,
         hgl: Math.round(hgl * 100) / 100,
         inflow: Math.round(baseInflow * 1000) / 1000,
@@ -111,16 +121,16 @@ export const runSimulation = (
     });
 
     // Calculate pipe results
-    const pipes: Record<string, PipeResult> = {};
+    const pipeResults: Record<string, PipeResult> = {};
     let peakPipeId = '';
     let peakPipeCapacity = 0;
     let totalFlow = 0;
 
-    samplePipes.forEach((pipe, index) => {
+    pipes.forEach((pipe, index) => {
       const capacity = pipeCapacities[pipe.id];
       
       // Flow based on upstream depth and storm intensity
-      const upstreamNode = nodes[pipe.fromNode];
+      const upstreamNode = nodeResults[pipe.fromNode];
       const depthFactor = upstreamNode ? upstreamNode.depth / 8 : 0.5;
       const flow = capacity * depthFactor * (0.6 + intensity * 0.4);
       
@@ -134,7 +144,7 @@ export const runSimulation = (
       // Surcharge when > 90% capacity
       const isSurcharged = utilization > 90;
 
-      pipes[pipe.id] = {
+      pipeResults[pipe.id] = {
         flow: Math.round(flow * 1000) / 1000,
         velocity: Math.round(velocity * 100) / 100,
         capacity: Math.round(utilization),
@@ -151,8 +161,8 @@ export const runSimulation = (
 
     results.push({
       time,
-      nodes,
-      pipes,
+      nodes: nodeResults,
+      pipes: pipeResults,
       systemFlow: Math.round(totalFlow * 100) / 100,
       peakNode: peakNodeId,
       peakPipe: peakPipeId

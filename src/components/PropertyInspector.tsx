@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { NetworkNode, NetworkPipe, samplePipes } from "@/data/sampleNetwork";
+import { NetworkNode, NetworkPipe } from "@/data/sampleNetwork";
 import { TimeStepResult, getNodeTimeSeries, getPipeTimeSeries } from "@/lib/simulationEngine";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
@@ -13,6 +13,7 @@ interface PropertyInspectorProps {
   simulationResults: TimeStepResult[];
   currentStep: number;
   onClose: () => void;
+  pipes: NetworkPipe[];
 }
 
 const PropertyInspector = ({
@@ -20,7 +21,8 @@ const PropertyInspector = ({
   selectedPipe,
   simulationResults,
   currentStep,
-  onClose
+  onClose,
+  pipes
 }: PropertyInspectorProps) => {
   if (!selectedNode && !selectedPipe) return null;
 
@@ -33,7 +35,7 @@ const PropertyInspector = ({
       : [];
 
     // Find connected pipes
-    const connectedPipes = samplePipes.filter(
+    const connectedPipes = pipes.filter(
       p => p.fromNode === selectedNode.id || p.toNode === selectedNode.id
     );
 
