@@ -5,16 +5,17 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { TimeStepResult, getResultsSummary, getPipeTimeSeries } from "@/lib/simulationEngine";
-import { samplePipes } from "@/data/sampleNetwork";
+import { NetworkPipe } from "@/data/sampleNetwork";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from "recharts";
 import { useState } from "react";
 
 interface ResultsViewProps {
   simulationResults: TimeStepResult[];
+  pipes: NetworkPipe[];
   onPipeSelect?: (pipeId: string) => void;
 }
 
-const ResultsView = ({ simulationResults, onPipeSelect }: ResultsViewProps) => {
+const ResultsView = ({ simulationResults, pipes, onPipeSelect }: ResultsViewProps) => {
   const [selectedPipeId, setSelectedPipeId] = useState<string | null>(null);
   
   const hasResults = simulationResults.length > 0;
@@ -291,7 +292,7 @@ ${pipeResults.slice(0, 10).map(p =>
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium">Time Series for {selectedPipeId}</h4>
                         <Badge variant="secondary">
-                          {samplePipes.find(p => p.id === selectedPipeId)?.diameter}" diameter
+                          {pipes.find(p => p.id === selectedPipeId)?.diameter}" diameter
                         </Badge>
                       </div>
                       <div className="h-72">

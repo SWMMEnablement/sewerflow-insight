@@ -14,8 +14,16 @@ import TechDetailsModal from "@/components/TechDetailsModal";
 import TimeSlider from "@/components/TimeSlider";
 import ComparisonMode from "@/components/ComparisonMode";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { NetworkNode, NetworkPipe, networkMetadata } from "@/data/sampleNetwork";
+import { NetworkNode, NetworkPipe, NetworkPump, sampleNodes, samplePipes, samplePumps, networkMetadata } from "@/data/sampleNetwork";
 import { runSimulation, TimeStepResult } from "@/lib/simulationEngine";
+
+interface NetworkMetadata {
+  name: string;
+  description: string;
+  nodeCount: number;
+  pipeCount: number;
+  pumpCount: number;
+}
 
 const Index = () => {
   const { toast } = useToast();
@@ -30,9 +38,31 @@ const Index = () => {
   const [selectedNode, setSelectedNode] = useState<NetworkNode | null>(null);
   const [selectedPipe, setSelectedPipe] = useState<NetworkPipe | null>(null);
   const [showComparison, setShowComparison] = useState(false);
+  
+  // Network state - allows loading custom networks
+  const [nodes, setNodes] = useState<NetworkNode[]>(sampleNodes);
+  const [pipes, setPipes] = useState<NetworkPipe[]>(samplePipes);
+  const [pumps, setPumps] = useState<NetworkPump[]>(samplePumps);
+  const [currentNetworkMetadata, setCurrentNetworkMetadata] = useState<NetworkMetadata>(networkMetadata);
 
   const simulationRef = useRef<boolean>(false);
   const animationRef = useRef<number | null>(null);
+
+  const handleNetworkImport = useCallback((
+    importedNodes: NetworkNode[], 
+    importedPipes: NetworkPipe[], 
+    importedPumps: NetworkPump[],
+    metadata: NetworkMetadata
+  ) => {
+    setNodes(importedNodes);
+    setPipes(importedPipes);
+    setPumps(importedPumps);
+    setCurrentNetworkMetadata(metadata);
+    setSimulationResults([]);
+    setCurrentStep(0);
+    setSelectedNode(null);
+    setSelectedPipe(null);
+  }, []);
 
   const handleRunSimulation = useCallback(() => {
     setIsSimulating(true);
@@ -47,7 +77,7 @@ const Index = () => {
       description: `Running ${duration}-hour storm analysis...`,
     });
 
-    // Run simulation in background
+    // Run simulation with current network data
     const results = runSimulation(
       {
         duration,
@@ -58,7 +88,8 @@ const Index = () => {
         if (!simulationRef.current) return;
         setSimulationProgress(progress);
         setCurrentTime(time);
-      }
+      },
+      { nodes, pipes }
     );
 
     // Animate through results
@@ -89,7 +120,7 @@ const Index = () => {
 
     // Start animation after a brief delay
     setTimeout(animateResults, 100);
-  }, [duration, stormMultiplier, toast]);
+  }, [duration, stormMultiplier, toast, nodes, pipes]);
 
   const handleStopSimulation = useCallback(() => {
     simulationRef.current = false;
@@ -227,15 +258,17 @@ const Index = () => {
                       currentStep={currentStep}
                       onNodeClick={handleNodeClick}
                       onPipeClick={handlePipeClick}
+                      nodes={nodes}
+                      pipes={pipes}
                     />
                   </TabsContent>
 
                   <TabsContent value="results" className="m-0 p-6">
-                    <ResultsView simulationResults={simulationResults} />
+                    <ResultsView simulationResults={simulationResults} pipes={pipes} />
                   </TabsContent>
 
                   <TabsContent value="input" className="m-0 p-6">
-                    <InputDataPanel />
+                    <InputDataPanel onNetworkImport={handleNetworkImport} />
                   </TabsContent>
                 </Tabs>
 
@@ -261,6 +294,7 @@ const Index = () => {
                   simulationResults={simulationResults}
                   currentStep={currentStep}
                   onClose={handleCloseInspector}
+                  pipes={pipes}
                 />
               )}
             </div>
@@ -278,7 +312,7 @@ const Index = () => {
             </div>
             <div className="h-4 w-px bg-border" />
             <div className="text-sm text-muted-foreground">
-              Network: <span className="font-medium text-foreground">{networkMetadata.name}</span>
+              Network: <span className="font-medium text-foreground">{currentNetworkMetadata.name}</span>
             </div>
             {simulationResults.length > 0 && (
               <>

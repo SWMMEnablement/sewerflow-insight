@@ -3,7 +3,7 @@ import { ZoomIn, ZoomOut, Maximize2, Download, MousePointer } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { sampleNodes, samplePipes, NetworkNode, NetworkPipe } from "@/data/sampleNetwork";
+import { NetworkNode, NetworkPipe } from "@/data/sampleNetwork";
 import { TimeStepResult } from "@/lib/simulationEngine";
 
 interface NetworkViewProps {
@@ -14,6 +14,8 @@ interface NetworkViewProps {
   currentStep: number;
   onNodeClick: (node: NetworkNode) => void;
   onPipeClick: (pipe: NetworkPipe) => void;
+  nodes: NetworkNode[];
+  pipes: NetworkPipe[];
 }
 
 const NetworkView = ({ 
@@ -23,7 +25,9 @@ const NetworkView = ({
   simulationResults,
   currentStep,
   onNodeClick,
-  onPipeClick
+  onPipeClick,
+  nodes,
+  pipes
 }: NetworkViewProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -88,9 +92,9 @@ const NetworkView = ({
     }
 
     // Draw pipes
-    samplePipes.forEach((pipe) => {
-      const fromNode = sampleNodes.find(n => n.id === pipe.fromNode);
-      const toNode = sampleNodes.find(n => n.id === pipe.toNode);
+    pipes.forEach((pipe) => {
+      const fromNode = nodes.find(n => n.id === pipe.fromNode);
+      const toNode = nodes.find(n => n.id === pipe.toNode);
       if (!fromNode || !toNode) return;
 
       const from = getNodePosition(fromNode);
@@ -151,7 +155,7 @@ const NetworkView = ({
     });
 
     // Draw nodes
-    sampleNodes.forEach((node) => {
+    nodes.forEach((node) => {
       const pos = getNodePosition(node);
       const nodeResult = currentResult?.nodes[node.id];
       const isSurcharged = nodeResult?.isSurcharged || false;
@@ -201,7 +205,7 @@ const NetworkView = ({
     // Legend
     drawLegend(ctx, canvas.width, canvas.height, currentResult !== null);
 
-  }, [isSimulating, zoom, offset, hoveredElement, simulationResults, currentStep, getNodePosition]);
+  }, [isSimulating, zoom, offset, hoveredElement, simulationResults, currentStep, getNodePosition, nodes, pipes]);
 
   const drawLegend = (ctx: CanvasRenderingContext2D, width: number, height: number, hasResults: boolean) => {
     const legendX = width - 160;
@@ -280,7 +284,7 @@ const NetworkView = ({
     const y = e.clientY - rect.top;
 
     // Check nodes first
-    for (const node of sampleNodes) {
+    for (const node of nodes) {
       const pos = getNodePosition(node);
       const distance = Math.sqrt(Math.pow(x - pos.x, 2) + Math.pow(y - pos.y, 2));
       if (distance < 18) {
@@ -290,9 +294,9 @@ const NetworkView = ({
     }
 
     // Check pipes
-    for (const pipe of samplePipes) {
-      const fromNode = sampleNodes.find(n => n.id === pipe.fromNode);
-      const toNode = sampleNodes.find(n => n.id === pipe.toNode);
+    for (const pipe of pipes) {
+      const fromNode = nodes.find(n => n.id === pipe.fromNode);
+      const toNode = nodes.find(n => n.id === pipe.toNode);
       if (!fromNode || !toNode) continue;
 
       const from = getNodePosition(fromNode);
@@ -324,7 +328,7 @@ const NetworkView = ({
     let found = false;
 
     // Check nodes
-    for (const node of sampleNodes) {
+    for (const node of nodes) {
       const pos = getNodePosition(node);
       const distance = Math.sqrt(Math.pow(x - pos.x, 2) + Math.pow(y - pos.y, 2));
       if (distance < 18) {
@@ -337,9 +341,9 @@ const NetworkView = ({
 
     // Check pipes if no node found
     if (!found) {
-      for (const pipe of samplePipes) {
-        const fromNode = sampleNodes.find(n => n.id === pipe.fromNode);
-        const toNode = sampleNodes.find(n => n.id === pipe.toNode);
+      for (const pipe of pipes) {
+        const fromNode = nodes.find(n => n.id === pipe.fromNode);
+        const toNode = nodes.find(n => n.id === pipe.toNode);
         if (!fromNode || !toNode) continue;
 
         const from = getNodePosition(fromNode);
