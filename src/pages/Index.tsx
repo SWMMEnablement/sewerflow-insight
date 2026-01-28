@@ -11,6 +11,7 @@ import InputDataPanel from "@/components/InputDataPanel";
 import PropertyInspector from "@/components/PropertyInspector";
 import GuidedWorkflow from "@/components/GuidedWorkflow";
 import TechDetailsModal from "@/components/TechDetailsModal";
+import TimeSlider from "@/components/TimeSlider";
 import { NetworkNode, NetworkPipe, networkMetadata } from "@/data/sampleNetwork";
 import { runSimulation, TimeStepResult } from "@/lib/simulationEngine";
 
@@ -117,12 +118,16 @@ const Index = () => {
   }, []);
 
   // Time slider for reviewing results
-  const handleTimeSliderChange = useCallback((value: number[]) => {
-    const step = Math.min(value[0], simulationResults.length - 1);
-    setCurrentStep(step);
-    if (simulationResults[step]) {
-      setCurrentTime(simulationResults[step].time);
+  const handleTimeSliderChange = useCallback((step: number) => {
+    const clampedStep = Math.min(step, simulationResults.length - 1);
+    setCurrentStep(clampedStep);
+    if (simulationResults[clampedStep]) {
+      setCurrentTime(simulationResults[clampedStep].time);
     }
+  }, [simulationResults]);
+
+  const getTimeAtStep = useCallback((step: number) => {
+    return simulationResults[step]?.time || 0;
   }, [simulationResults]);
 
   return (
@@ -220,6 +225,19 @@ const Index = () => {
                     <InputDataPanel />
                   </TabsContent>
                 </Tabs>
+
+                {/* Time Slider - shown when results are available */}
+                {simulationResults.length > 1 && (
+                  <div className="mt-4">
+                    <TimeSlider
+                      totalSteps={simulationResults.length}
+                      currentStep={currentStep}
+                      onStepChange={handleTimeSliderChange}
+                      getTimeAtStep={getTimeAtStep}
+                      disabled={isSimulating}
+                    />
+                  </div>
+                )}
               </Card>
 
               {/* Property Inspector Sidebar */}
