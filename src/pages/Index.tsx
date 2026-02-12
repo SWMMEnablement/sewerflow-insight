@@ -151,6 +151,38 @@ const Index = () => {
     setSelectedPipe(null);
   }, []);
 
+  // Editor callbacks
+  const handleAddNode = useCallback((node: NetworkNode) => {
+    setNodes(prev => [...prev, node]);
+    setCurrentNetworkMetadata(prev => ({ ...prev, nodeCount: prev.nodeCount + 1 }));
+    setSimulationResults([]);
+  }, []);
+
+  const handleUpdateNode = useCallback((updatedNode: NetworkNode) => {
+    setNodes(prev => prev.map(n => n.id === updatedNode.id ? updatedNode : n));
+  }, []);
+
+  const handleDeleteNode = useCallback((nodeId: string) => {
+    setNodes(prev => prev.filter(n => n.id !== nodeId));
+    setPipes(prev => prev.filter(p => p.fromNode !== nodeId && p.toNode !== nodeId));
+    setCurrentNetworkMetadata(prev => ({ ...prev, nodeCount: prev.nodeCount - 1 }));
+    setSimulationResults([]);
+    if (selectedNode?.id === nodeId) setSelectedNode(null);
+  }, [selectedNode]);
+
+  const handleAddPipe = useCallback((pipe: NetworkPipe) => {
+    setPipes(prev => [...prev, pipe]);
+    setCurrentNetworkMetadata(prev => ({ ...prev, pipeCount: prev.pipeCount + 1 }));
+    setSimulationResults([]);
+  }, []);
+
+  const handleDeletePipe = useCallback((pipeId: string) => {
+    setPipes(prev => prev.filter(p => p.id !== pipeId));
+    setCurrentNetworkMetadata(prev => ({ ...prev, pipeCount: prev.pipeCount - 1 }));
+    setSimulationResults([]);
+    if (selectedPipe?.id === pipeId) setSelectedPipe(null);
+  }, [selectedPipe]);
+
   // Time slider for reviewing results
   const handleTimeSliderChange = useCallback((step: number) => {
     const clampedStep = Math.min(step, simulationResults.length - 1);
@@ -260,6 +292,11 @@ const Index = () => {
                       onPipeClick={handlePipeClick}
                       nodes={nodes}
                       pipes={pipes}
+                      onAddNode={handleAddNode}
+                      onUpdateNode={handleUpdateNode}
+                      onDeleteNode={handleDeleteNode}
+                      onAddPipe={handleAddPipe}
+                      onDeletePipe={handleDeletePipe}
                     />
                   </TabsContent>
 
