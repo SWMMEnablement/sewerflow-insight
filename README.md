@@ -1,73 +1,75 @@
-# Welcome to your Lovable project
+# Sewerflow Insight - InfoSewer Engine
 
-## Project info
+> _README added by Robert Dickinson via Comet._
 
-**URL**: https://lovable.dev/projects/8b84bdf4-eab1-45fd-be53-02415ce1ff2e
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white) ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black) ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white) ![shadcn/ui](https://img.shields.io/badge/shadcn--ui-000000?logo=shadcnui&logoColor=white)
 
-## How can I edit this code?
+## About
 
-There are several ways of editing your application.
+**Sewerflow Insight** (the InfoSewer Engine) is a browser-based hydraulic analysis and simulation platform for sanitary sewer networks, designed for civil engineers and municipal staff. It features interactive HTML5 Canvas visualization, hydraulic simulation using Manning's equation and Saint-Venant approximations, EPA SWMM `.inp` file import, and scenario comparison tools.
 
-**Use Lovable**
+The app provides a fully client-side environment for modeling sewer capacity, surcharging, and flow dynamics; editing network layouts directly on an interactive canvas; importing SWMM models; and analyzing results with time-slider playback, peak-flow metrics, and surcharged-manhole rankings.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8b84bdf4-eab1-45fd-be53-02415ce1ff2e) and start prompting.
+It is part of the SWMMEnablement collection and is built on a modern Vite + React + TypeScript frontend styled with Tailwind CSS and shadcn/ui.
 
-Changes made via Lovable will be committed automatically to this repo.
+## What's Inside
 
-**Use your preferred IDE**
+| Feature | Description |
+| --- | --- |
+| Interactive visualization | Canvas-based network viewer with zoom and hover-to-inspect. |
+| Simulation engine | Dynamic Extended Period Simulation (EPS) of sewer hydraulics. |
+| Network editor | Select, add node, move, connect (add pipe), and delete modes with auto length/slope calculation. |
+| Scenario comparison | Side-by-side analysis of configurations with delta indicators. |
+| Import / export | Loads EPA SWMM `.inp` files and exports text-based summary reports. |
+| Results playback | Time-slider playback, peak-flow metrics, and surcharged-manhole rankings. |
+| Guided workflow | 5-step onboarding and a technical documentation modal. |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Engine & Methods
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+| Area | Detail |
+| --- | --- |
+| Core logic | `src/lib/simulationEngine.ts` runs synchronously in the browser. |
+| Capacity | Manning's equation for pipe full-flow capacity. |
+| Routing | Kinematic wave approximation of the Saint-Venant equations. |
+| Storm input | Pre-defined 2-hour SCS Type II storm, scalable via a `stormMultiplier`. |
+| Network editor | Integrated in `NetworkView.tsx`; edits clear prior results to maintain data integrity. |
 
-Follow these steps:
+## Tech Stack
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+| Layer | Technology |
+| --- | --- |
+| Language | TypeScript (strict mode) |
+| Framework | React 18 |
+| Build tool | Vite |
+| Styling | Tailwind CSS + shadcn/ui (Radix primitives), next-themes |
+| Visualization | HTML5 Canvas (network), Recharts (charts) |
+| Forms / validation | React Hook Form + Zod |
+| Runtime | Entirely client-side (no backend, no database) |
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Getting Started
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+# Clone the repository
+git clone https://github.com/SWMMEnablement/sewerflow-insight.git
+cd sewerflow-insight
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Install dependencies
+npm install
+
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Then open the local URL printed by Vite (typically http://localhost:5173) in your browser.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+# Build for production
+npm run build
 
-**Use GitHub Codespaces**
+# Preview the production build
+npm run preview
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## License
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/8b84bdf4-eab1-45fd-be53-02415ce1ff2e) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Released under the MIT License unless otherwise noted in this repository.
